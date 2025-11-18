@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bot Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-dot {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 transition-colors">
+    <div class="min-h-screen p-4 md:p-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <header class="text-center mb-8 fade-in">
+                <h1 class="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                    AI Bot Playground
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 text-base md:text-lg">
+                    Explore different AI capabilities in one place
+                </p>
+            </header>
+
+            <!-- Bot Selection Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <!-- Text Generation Card -->
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-2">💬 Text Generation</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Chat with Claude Sonnet</p>
+                        </div>
+                    </div>
+                    <textarea
+                        id="textInput"
+                        placeholder="Ask me anything..."
+                        class="w-full px-4 py-3 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none mb-3"
+                        rows="3"
+                    ></textarea>
+                    <button
+                        onclick="generateText()"
+                        class="w-full bg-primary hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                        Generate Response
+                    </button>
+                    <div id="textOutput" class="mt-4 p-4 bg-white dark:bg-gray-700 rounded-lg min-h-[100px] hidden">
+                        <div class="prose dark:prose-invert max-w-none"></div>
+                    </div>
+                </div>
+
+                <!-- Image Generation Card -->
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-2">🎨 Image Generation</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Create images with GPT-Image-1</p>
+                        </div>
+                    </div>
+                    <textarea
+                        id="imageInput"
+                        placeholder="Describe the image you want..."
+                        class="w-full px-4 py-3 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none mb-3"
+                        rows="3"
+                    ></textarea>
+                    <button
+                        onclick="generateImage()"
+                        class="w-full bg-primary hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                        Generate Image
+                    </button>
+                    <div id="imageOutput" class="mt-4 text-sm text-gray-600 dark:text-gray-400"></div>
+                    <div id="imageContainer" class="mt-4 hidden">
+                        <img id="generatedImage" class="w-full rounded-lg shadow-md" alt="Generated image">
+                    </div>
+                </div>
+
+                <!-- Speech Generation Card -->
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-2">🎙️ Speech Generation</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Text to speech with ElevenLabs</p>
+                        </div>
+                    </div>
+                    <textarea
+                        id="speechInput"
+                        placeholder="Enter text to convert to speech..."
+                        class="w-full px-4 py-3 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none mb-3"
+                        rows="3"
+                    ></textarea>
+                    <button
+                        onclick="generateSpeech()"
+                        class="w-full bg-primary hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                        Generate Speech
+                    </button>
+                    <div id="speechOutput" class="mt-4 text-sm text-gray-600 dark:text-gray-400"></div>
+                    <div id="audioContainer" class="mt-4 hidden">
+                        <audio id="generatedAudio" controls class="w-full"></audio>
+                    </div>
+                </div>
+
+                <!-- Comparison Card -->
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-2">⚖️ Bot Comparison</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Compare Claude & GPT-4o</p>
+                        </div>
+                    </div>
+                    <textarea
+                        id="compareInput"
+                        placeholder="Ask both bots the same question..."
+                        class="w-full px-4 py-3 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none mb-3"
+                        rows="3"
+                    ></textarea>
+                    <button
+                        onclick="compareBots()"
+                        class="w-full bg-primary hover:bg-purple-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                        Compare Responses
+                    </button>
+                    <div id="compareOutput" class="mt-4 space-y-3 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
+                <p>Built with the Poe Embed API • Powered by AI</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Dark mode support
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Configure marked for proper rendering
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        // Text Generation Handler
+        window.Poe.registerHandler("text-handler", (result) => {
+            const msg = result.responses[0];
+            const output = document.getElementById('textOutput');
+            const outputDiv = output.querySelector('.prose');
+
+            if (msg.status === "error") {
+                outputDiv.innerHTML = `<p class="text-red-500">Error: ${msg.statusText}</p>`;
+                output.classList.remove('hidden');
+            } else if (msg.status === "incomplete" || msg.status === "complete") {
+                outputDiv.innerHTML = marked.parse(msg.content || "Generating...");
+                output.classList.remove('hidden');
+            }
+        });
+
+        async function generateText() {
+            const input = document.getElementById('textInput').value.trim();
+            const output = document.getElementById('textOutput');
+            const outputDiv = output.querySelector('.prose');
+
+            if (!input) {
+                showCustomAlert('Please enter some text first');
+                return;
+            }
+
+            outputDiv.innerHTML = '<div class="flex items-center space-x-2"><div class="w-2 h-2 bg-primary rounded-full pulse-dot"></div><div class="w-2 h-2 bg-primary rounded-full pulse-dot" style="animation-delay: 0.2s"></div><div class="w-2 h-2 bg-primary rounded-full pulse-dot" style="animation-delay: 0.4s"></div></div>';
+            output.classList.remove('hidden');
+
+            try {
+                await window.Poe.sendUserMessage(`@Claude-Sonnet-4.5 ${input}`, {
+                    handler: "text-handler",
+                    stream: true,
+                    openChat: false
+                });
+            } catch (err) {
+                outputDiv.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
+            }
+        }
+
+        // Image Generation Handler
+        window.Poe.registerHandler("image-handler", (result) => {
+            const msg = result.responses[0];
+            const imageOutput = document.getElementById('imageOutput');
+            const imageContainer = document.getElementById('imageContainer');
+            const generatedImage = document.getElementById('generatedImage');
+
+            if (msg.status === "error") {
+                imageOutput.textContent = "Error: " + msg.statusText;
+                imageOutput.classList.add('text-red-500');
+                imageContainer.classList.add('hidden');
+            } else if (msg.status === "incomplete") {
+                imageOutput.textContent = "Generating your image...";
+                imageOutput.classList.remove('text-red-500');
+            } else if (msg.status === "complete") {
+                if (msg.attachments && msg.attachments.length > 0) {
+                    const imageAttachment = msg.attachments.find(att => att.mimeType.startsWith('image/'));
+                    if (imageAttachment) {
+                        generatedImage.src = imageAttachment.url;
+                        imageContainer.classList.remove('hidden');
+                        imageOutput.textContent = "Image generated successfully!";
+                        imageOutput.classList.remove('text-red-500');
+                    } else {
+                        imageOutput.textContent = "No image was generated";
+                        imageContainer.classList.add('hidden');
+                    }
+                } else {
+                    imageOutput.textContent = "No image was generated";
+                    imageContainer.classList.add('hidden');
+                }
+            }
+        });
+
+        async function generateImage() {
+            const input = document.getElementById('imageInput').value.trim();
+            const imageOutput = document.getElementById('imageOutput');
+            const imageContainer = document.getElementById('imageContainer');
+
+            if (!input) {
+                showCustomAlert('Please enter an image description first');
+                return;
+            }
+
+            imageOutput.textContent = "Starting image generation...";
+            imageOutput.classList.remove('text-red-500');
+            imageContainer.classList.add('hidden');
+
+            try {
+                await window.Poe.sendUserMessage(`@GPT-Image-1 ${input}`, {
+                    handler: "image-handler",
+                    stream: false,
+                    openChat: false
+                });
+            } catch (err) {
+                imageOutput.textContent = "Error: " + err.message;
+                imageOutput.classList.add('text-red-500');
+            }
+        }
+
+        // Speech Generation Handler
+        window.Poe.registerHandler("speech-handler", (result) => {
+            const msg = result.responses[0];
+            const speechOutput = document.getElementById('speechOutput');
+            const audioContainer = document.getElementById('audioContainer');
+            const generatedAudio = document.getElementById('generatedAudio');
+
+            if (msg.status === "error") {
+                speechOutput.textContent = "Error: " + msg.statusText;
+                speechOutput.classList.add('text-red-500');
+                audioContainer.classList.add('hidden');
+            } else if (msg.status === "incomplete") {
+                speechOutput.textContent = "Generating speech...";
+                speechOutput.classList.remove('text-red-500');
+            } else if (msg.status === "complete") {
+                if (msg.attachments && msg.attachments.length > 0) {
+                    const audioAttachment = msg.attachments.find(att => att.mimeType.startsWith('audio/'));
+                    if (audioAttachment) {
+                        generatedAudio.src = audioAttachment.url;
+                        audioContainer.classList.remove('hidden');
+                        speechOutput.textContent = "Speech generated successfully!";
+                        speechOutput.classList.remove('text-red-500');
+                    } else {
+                        speechOutput.textContent = "No audio was generated";
+                        audioContainer.classList.add('hidden');
+                    }
+                } else {
+                    speechOutput.textContent = "No audio was generated";
+                    audioContainer.classList.add('hidden');
+                }
+            }
+        });
+
+        async function generateSpeech() {
+            const input = document.getElementById('speechInput').value.trim();
+            const speechOutput = document.getElementById('speechOutput');
+            const audioContainer = document.getElementById('audioContainer');
+
+            if (!input) {
+                showCustomAlert('Please enter some text to convert to speech');
+                return;
+            }
+
+            speechOutput.textContent = "Starting speech generation...";
+            speechOutput.classList.remove('text-red-500');
+            audioContainer.classList.add('hidden');
+
+            try {
+                await window.Poe.sendUserMessage(`@ElevenLabs-v2.5-Turbo ${input}`, {
+                    handler: "speech-handler",
+                    stream: false,
+                    openChat: false
+                });
+            } catch (err) {
+                speechOutput.textContent = "Error: " + err.message;
+                speechOutput.classList.add('text-red-500');
+            }
+        }
+
+        // Bot Comparison Handler
+        window.Poe.registerHandler("compare-handler", (result) => {
+            const compareOutput = document.getElementById('compareOutput');
+            compareOutput.classList.remove('hidden');
+
+            result.responses.forEach(msg => {
+                const botName = msg.senderId;
+                let botDiv = document.getElementById(`bot-${msg.messageId}`);
+
+                if (!botDiv) {
+                    botDiv = document.createElement('div');
+                    botDiv.id = `bot-${msg.messageId}`;
+                    botDiv.className = 'bg-white dark:bg-gray-700 rounded-lg p-4';
+                    botDiv.innerHTML = `
+                        <h3 class="font-semibold text-sm mb-2 text-primary">${botName}</h3>
+                        <div class="prose dark:prose-invert max-w-none text-sm"></div>
+                    `;
+                    compareOutput.appendChild(botDiv);
+                }
+
+                const contentDiv = botDiv.querySelector('.prose');
+
+                if (msg.status === "error") {
+                    contentDiv.innerHTML = `<p class="text-red-500">Error: ${msg.statusText}</p>`;
+                } else if (msg.status === "incomplete" || msg.status === "complete") {
+                    contentDiv.innerHTML = marked.parse(msg.content || "Generating...");
+                }
+            });
+        });
+
+        async function compareBots() {
+            const input = document.getElementById('compareInput').value.trim();
+            const compareOutput = document.getElementById('compareOutput');
+
+            if (!input) {
+                showCustomAlert('Please enter a question to compare');
+                return;
+            }
+
+            compareOutput.innerHTML = '<div class="text-center text-gray-500"><div class="flex items-center justify-center space-x-2"><div class="w-2 h-2 bg-primary rounded-full pulse-dot"></div><div class="w-2 h-2 bg-primary rounded-full pulse-dot" style="animation-delay: 0.2s"></div><div class="w-2 h-2 bg-primary rounded-full pulse-dot" style="animation-delay: 0.4s"></div></div></div>';
+            compareOutput.classList.remove('hidden');
+
+            try {
+                await window.Poe.sendUserMessage(`@Claude-Sonnet-4.5 @GPT-4o ${input}`, {
+                    handler: "compare-handler",
+                    stream: true,
+                    openChat: false
+                });
+            } catch (err) {
+                compareOutput.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
+            }
+        }
+
+        // Custom alert function (no native alert())
+        function showCustomAlert(message) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 fade-in">
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
+                    <div class="flex justify-end">
+                        <button class="px-4 py-2 bg-primary text-white hover:bg-purple-600 rounded-lg transition-colors" onclick="this.closest('.fixed').remove()">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        // Enter key support for textareas
+        document.addEventListener('DOMContentLoaded', () => {
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        const button = textarea.nextElementSibling;
+                        if (button && button.tagName === 'BUTTON') {
+                            button.click();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

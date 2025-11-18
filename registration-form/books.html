@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduHub - E-Learning & E-Books Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4A49C5',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .book-content {
+            column-count: 1;
+            column-gap: 2rem;
+            text-align: justify;
+            hyphens: auto;
+        }
+        @media (min-width: 1024px) {
+            .book-content {
+                column-count: 2;
+            }
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #444;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-graduation-cap text-primary text-2xl"></i>
+                    <span class="text-xl font-bold">EduHub</span>
+                </div>
+                <div class="flex space-x-1 sm:space-x-4">
+                    <button id="navCourses" class="nav-btn px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-book-open mr-1 sm:mr-2"></i><span class="hidden sm:inline">Courses</span><span class="sm:hidden">Learn</span>
+                    </button>
+                    <button id="navBooks" class="nav-btn px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-book mr-1 sm:mr-2"></i><span class="hidden sm:inline">E-Books</span><span class="sm:hidden">Books</span>
+                    </button>
+                    <button id="navAI" class="nav-btn px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-robot mr-1 sm:mr-2"></i><span class="hidden sm:inline">AI Tutor</span><span class="sm:hidden">AI</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <!-- Courses Section -->
+        <div id="coursesSection" class="section">
+            <div class="mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold mb-2">Explore Courses</h1>
+                <p class="text-gray-600 dark:text-gray-400">Master new skills with our comprehensive courses</p>
+            </div>
+
+            <!-- Course Grid -->
+            <div id="courseGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Courses will be populated here -->
+            </div>
+        </div>
+
+        <!-- Course Detail View -->
+        <div id="courseDetailSection" class="section hidden">
+            <button id="backToCourses" class="mb-6 flex items-center text-primary hover:text-primary-dark transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Courses
+            </button>
+            <div id="courseDetail" class="fade-in">
+                <!-- Course details will be populated here -->
+            </div>
+        </div>
+
+        <!-- E-Books Section -->
+        <div id="booksSection" class="section hidden">
+            <div class="mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold mb-2">E-Books Library</h1>
+                <p class="text-gray-600 dark:text-gray-400">Discover knowledge through our curated collection</p>
+            </div>
+
+            <!-- Books Grid -->
+            <div id="booksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Books will be populated here -->
+            </div>
+        </div>
+
+        <!-- Book Reader -->
+        <div id="bookReaderSection" class="section hidden">
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <button id="backToBooks" class="flex items-center text-primary hover:text-primary-dark transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Library
+                </button>
+                <div class="flex space-x-2 w-full sm:w-auto">
+                    <button id="decreaseFontSize" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button id="increaseFontSize" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button id="askAboutBook" class="flex-1 sm:flex-none px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                        <i class="fas fa-robot mr-2"></i>Ask AI
+                    </button>
+                </div>
+            </div>
+            <div id="bookReader" class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 sm:p-8 lg:p-12 shadow-lg">
+                <!-- Book content will be populated here -->
+            </div>
+        </div>
+
+        <!-- AI Tutor Section -->
+        <div id="aiSection" class="section hidden">
+            <div class="mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold mb-2">AI Tutor</h1>
+                <p class="text-gray-600 dark:text-gray-400">Get instant help with your learning journey</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- AI Features Cards -->
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform" onclick="showAIChat('homework')">
+                    <i class="fas fa-pencil-alt text-4xl mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Homework Help</h3>
+                    <p class="text-blue-100">Get step-by-step solutions to your homework problems</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform" onclick="showAIChat('concept')">
+                    <i class="fas fa-lightbulb text-4xl mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Concept Explanation</h3>
+                    <p class="text-purple-100">Understand difficult concepts with clear explanations</p>
+                </div>
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform" onclick="showAIChat('quiz')">
+                    <i class="fas fa-brain text-4xl mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Quiz Generator</h3>
+                    <p class="text-green-100">Create custom quizzes to test your knowledge</p>
+                </div>
+            </div>
+
+            <!-- AI Chat Interface -->
+            <div id="aiChatContainer" class="mt-8 hidden">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-primary text-white p-4 flex justify-between items-center">
+                        <h3 id="aiChatTitle" class="font-bold text-lg">AI Tutor Chat</h3>
+                        <button onclick="closeAIChat()" class="hover:bg-primary-dark rounded-lg p-2 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="aiChatMessages" class="h-96 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-800">
+                        <!-- Messages will appear here -->
+                    </div>
+                    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                        <div class="flex space-x-2">
+                            <input type="text" id="aiChatInput" placeholder="Ask anything..." class="flex-1 px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white">
+                            <button onclick="sendAIMessage()" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Dark mode setup
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Sample Data
+        const courses = [
+            {
+                id: 1,
+                title: "Web Development Fundamentals",
+                instructor: "Sarah Johnson",
+                duration: "8 weeks",
+                students: 1234,
+                rating: 4.8,
+                thumbnail: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop",
+                description: "Learn the basics of HTML, CSS, and JavaScript to build modern websites.",
+                lessons: [
+                    { id: 1, title: "Introduction to HTML", duration: "45 min", completed: false },
+                    { id: 2, title: "CSS Styling Basics", duration: "60 min", completed: false },
+                    { id: 3, title: "JavaScript Fundamentals", duration: "75 min", completed: false },
+                    { id: 4, title: "Responsive Design", duration: "50 min", completed: false },
+                    { id: 5, title: "Building Your First Website", duration: "90 min", completed: false }
+                ]
+            },
+            {
+                id: 2,
+                title: "Data Science with Python",
+                instructor: "Dr. Michael Chen",
+                duration: "12 weeks",
+                students: 2145,
+                rating: 4.9,
+                thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop",
+                description: "Master data analysis, visualization, and machine learning with Python.",
+                lessons: [
+                    { id: 1, title: "Python Basics for Data Science", duration: "60 min", completed: false },
+                    { id: 2, title: "NumPy and Pandas", duration: "90 min", completed: false },
+                    { id: 3, title: "Data Visualization with Matplotlib", duration: "70 min", completed: false },
+                    { id: 4, title: "Introduction to Machine Learning", duration: "80 min", completed: false },
+                    { id: 5, title: "Building Predictive Models", duration: "100 min", completed: false }
+                ]
+            },
+            {
+                id: 3,
+                title: "Digital Marketing Mastery",
+                instructor: "Emily Rodriguez",
+                duration: "6 weeks",
+                students: 3421,
+                rating: 4.7,
+                thumbnail: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop",
+                description: "Learn SEO, social media marketing, and content strategy.",
+                lessons: [
+                    { id: 1, title: "Digital Marketing Overview", duration: "40 min", completed: false },
+                    { id: 2, title: "SEO Fundamentals", duration: "65 min", completed: false },
+                    { id: 3, title: "Social Media Strategy", duration: "55 min", completed: false },
+                    { id: 4, title: "Content Marketing", duration: "60 min", completed: false },
+                    { id: 5, title: "Analytics and Optimization", duration: "70 min", completed: false }
+                ]
+            },
+            {
+                id: 4,
+                title: "Mobile App Development",
+                instructor: "James Park",
+                duration: "10 weeks",
+                students: 1876,
+                rating: 4.6,
+                thumbnail: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=250&fit=crop",
+                description: "Build iOS and Android apps with React Native.",
+                lessons: [
+                    { id: 1, title: "React Native Setup", duration: "50 min", completed: false },
+                    { id: 2, title: "Components and Props", duration: "70 min", completed: false },
+                    { id: 3, title: "Navigation and Routing", duration: "65 min", completed: false },
+                    { id: 4, title: "State Management", duration: "80 min", completed: false },
+                    { id: 5, title: "Publishing Your App", duration: "60 min", completed: false }
+                ]
+            },
+            {
+                id: 5,
+                title: "UI/UX Design Principles",
+                instructor: "Lisa Anderson",
+                duration: "5 weeks",
+                students: 2567,
+                rating: 4.9,
+                thumbnail: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop",
+                description: "Create beautiful and user-friendly interfaces.",
+                lessons: [
+                    { id: 1, title: "Design Thinking Process", duration: "45 min", completed: false },
+                    { id: 2, title: "Typography and Color Theory", duration: "55 min", completed: false },
+                    { id: 3, title: "Wireframing and Prototyping", duration: "70 min", completed: false },
+                    { id: 4, title: "User Research Methods", duration: "60 min", completed: false },
+                    { id: 5, title: "Usability Testing", duration: "65 min", completed: false }
+                ]
+            },
+            {
+                id: 6,
+                title: "Cloud Computing with AWS",
+                instructor: "Robert Kumar",
+                duration: "8 weeks",
+                students: 1654,
+                rating: 4.8,
+                thumbnail: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=250&fit=crop",
+                description: "Master AWS services and cloud architecture.",
+                lessons: [
+                    { id: 1, title: "Introduction to Cloud Computing", duration: "50 min", completed: false },
+                    { id: 2, title: "EC2 and Virtual Machines", duration: "75 min", completed: false },
+                    { id: 3, title: "S3 and Storage Solutions", duration: "60 min", completed: false },
+                    { id: 4, title: "Databases on AWS", duration: "70 min", completed: false },
+                    { id: 5, title: "Security and Best Practices", duration: "80 min", completed: false }
+                ]
+            }
+        ];
+
+        const books = [
+            {
+                id: 1,
+                title: "The Art of Programming",
+                author: "John Smith",
+                pages: 456,
+                category: "Technology",
+                cover: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=300&h=400&fit=crop",
+                content: `# Chapter 1: Introduction to Programming\n\nProgramming is both an art and a science. It requires creativity, logical thinking, and attention to detail. In this comprehensive guide, we'll explore the fundamental principles that make great programmers.\n\n## What is Programming?\n\nAt its core, programming is the process of creating instructions for computers to follow. These instructions, written in programming languages, tell computers how to process data, make decisions, and interact with users.\n\n### The Evolution of Programming\n\nProgramming has evolved dramatically since the first computers were built. From machine code and assembly language to high-level languages like Python and JavaScript, each generation has made programming more accessible and powerful.\n\n**Key milestones:**\n- 1940s: Machine code and early assembly languages\n- 1950s: FORTRAN and COBOL\n- 1970s: C and structured programming\n- 1990s: Object-oriented languages like Java and Python\n- 2000s: Web technologies and mobile development\n- 2020s: AI-assisted programming and low-code platforms\n\n## Fundamental Concepts\n\n### Variables and Data Types\n\nVariables are containers for storing data. Every variable has a type that determines what kind of data it can hold. Common data types include:\n\n- **Integers**: Whole numbers (1, 42, -17)\n- **Floats**: Decimal numbers (3.14, -0.5, 2.0)\n- **Strings**: Text data ("Hello", "Programming")\n- **Booleans**: True or false values\n\n### Control Structures\n\nControl structures direct the flow of your program. They include:\n\n1. **Conditional statements** (if/else): Make decisions\n2. **Loops** (for/while): Repeat actions\n3. **Functions**: Organize reusable code\n\n### Problem-Solving Approach\n\nSuccessful programmers follow a systematic approach:\n\n1. Understand the problem completely\n2. Break it down into smaller parts\n3. Design a solution\n4. Implement the solution\n5. Test and debug\n6. Optimize and refactor\n\nRemember: The best code is not just functional, but also readable, maintainable, and efficient. As you progress in your programming journey, you'll develop an intuition for writing elegant solutions to complex problems.`
+            },
+            {
+                id: 2,
+                title: "Modern JavaScript",
+                author: "Emily Davis",
+                pages: 324,
+                category: "Technology",
+                cover: "https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=300&h=400&fit=crop",
+                content: `# Chapter 1: JavaScript in the Modern Era\n\nJavaScript has transformed from a simple scripting language to the backbone of modern web development. Today, it powers everything from interactive websites to server applications and mobile apps.\n\n## The JavaScript Revolution\n\nIn the early days, JavaScript was primarily used for simple form validation and basic interactivity. Now, it's a full-featured programming language with powerful capabilities.\n\n### ES6 and Beyond\n\nECMAScript 6 (ES6), released in 2015, brought revolutionary features:\n\n**Arrow Functions**: A concise syntax for writing functions\n\`\`\`javascript\nconst greet = (name) => \`Hello, \${name}!\`;\n\`\`\`\n\n**Destructuring**: Extract values from objects and arrays easily\n\`\`\`javascript\nconst { name, age } = person;\nconst [first, second] = array;\n\`\`\`\n\n**Template Literals**: Embed expressions in strings\n\`\`\`javascript\nconst message = \`Welcome, \${user.name}!\`;\n\`\`\`\n\n### Asynchronous JavaScript\n\nModern JavaScript excels at handling asynchronous operations:\n\n**Promises**: Represent future values\n\`\`\`javascript\nfetch('/api/data')\n  .then(response => response.json())\n  .then(data => console.log(data));\n\`\`\`\n\n**Async/Await**: Write asynchronous code that looks synchronous\n\`\`\`javascript\nasync function getData() {\n  const response = await fetch('/api/data');\n  const data = await response.json();\n  return data;\n}\n\`\`\`\n\n## The JavaScript Ecosystem\n\nThe JavaScript ecosystem is vast and continually evolving:\n\n### Frontend Frameworks\n- **React**: Component-based UI library\n- **Vue**: Progressive framework for building interfaces\n- **Angular**: Full-featured framework for large applications\n\n### Backend Development\n- **Node.js**: Run JavaScript on the server\n- **Express**: Minimal web framework\n- **Next.js**: React framework with server-side rendering\n\n### Build Tools\n- **Webpack**: Module bundler\n- **Vite**: Next-generation frontend tooling\n- **Babel**: JavaScript compiler\n\n## Best Practices\n\n1. **Write Clean Code**: Use meaningful variable names, keep functions small\n2. **Handle Errors**: Always handle potential errors in async operations\n3. **Optimize Performance**: Avoid unnecessary re-renders, use memoization\n4. **Test Your Code**: Write unit tests and integration tests\n5. **Stay Updated**: The JavaScript ecosystem evolves rapidly\n\nMastering modern JavaScript opens doors to endless possibilities in web development.`
+            },
+            {
+                id: 3,
+                title: "Data Science Handbook",
+                author: "Dr. Sarah Williams",
+                pages: 512,
+                category: "Science",
+                cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300&h=400&fit=crop",
+                content: `# Chapter 1: Introduction to Data Science\n\nData science is the interdisciplinary field that uses scientific methods, algorithms, and systems to extract knowledge and insights from structured and unstructured data.\n\n## The Data Science Process\n\nData science projects typically follow a systematic workflow:\n\n### 1. Problem Definition\nClearly define what you're trying to achieve. Ask:\n- What business question are we answering?\n- What metrics define success?\n- What constraints do we face?\n\n### 2. Data Collection\nGather relevant data from various sources:\n- Databases and data warehouses\n- APIs and web scraping\n- Surveys and experiments\n- Public datasets\n\n### 3. Data Cleaning\nReal-world data is messy. Common issues include:\n- **Missing values**: Decide to drop, fill, or impute\n- **Outliers**: Identify and handle anomalies\n- **Inconsistencies**: Standardize formats and units\n- **Duplicates**: Remove redundant records\n\n### 4. Exploratory Data Analysis (EDA)\n\nUnderstand your data through:\n\n**Descriptive Statistics**:\n- Mean, median, mode\n- Standard deviation and variance\n- Quartiles and percentiles\n\n**Visualizations**:\n- Histograms for distributions\n- Scatter plots for relationships\n- Box plots for comparing groups\n- Heatmaps for correlations\n\n### 5. Feature Engineering\n\nCreate meaningful features from raw data:\n- Combine existing features\n- Extract temporal features (day, month, season)\n- Encode categorical variables\n- Scale and normalize numerical features\n\n### 6. Model Building\n\nSelect appropriate algorithms based on your problem:\n\n**Supervised Learning**:\n- Regression: Predict continuous values\n- Classification: Predict categories\n\n**Unsupervised Learning**:\n- Clustering: Group similar items\n- Dimensionality reduction: Simplify data\n\n### 7. Model Evaluation\n\nAssess model performance:\n- Split data into training and test sets\n- Use cross-validation\n- Calculate relevant metrics (accuracy, precision, recall, F1)\n- Analyze errors and iterate\n\n### 8. Deployment and Monitoring\n\nPut your model into production:\n- Create APIs for model serving\n- Monitor performance over time\n- Retrain when performance degrades\n\n## Essential Tools\n\n**Python Libraries**:\n- **Pandas**: Data manipulation\n- **NumPy**: Numerical computing\n- **Scikit-learn**: Machine learning\n- **TensorFlow/PyTorch**: Deep learning\n- **Matplotlib/Seaborn**: Visualization\n\n**R Libraries**:\n- **dplyr**: Data manipulation\n- **ggplot2**: Visualization\n- **caret**: Machine learning\n\n## Key Skills for Data Scientists\n\n1. **Programming**: Python, R, SQL\n2. **Statistics**: Probability, hypothesis testing\n3. **Machine Learning**: Algorithms and evaluation\n4. **Communication**: Present findings clearly\n5. **Domain Knowledge**: Understand the business context\n\nData science is a journey of continuous learning. The field evolves rapidly, and staying curious is key to success.`
+            },
+            {
+                id: 4,
+                title: "Digital Marketing Guide",
+                author: "Mark Thompson",
+                pages: 278,
+                category: "Business",
+                cover: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=300&h=400&fit=crop",
+                content: `# Chapter 1: The Digital Marketing Landscape\n\nDigital marketing has revolutionized how businesses connect with customers. In today's connected world, a strong digital presence is essential for success.\n\n## Understanding Digital Marketing\n\nDigital marketing encompasses all marketing efforts that use electronic devices or the internet. It allows businesses to reach customers where they spend most of their time: online.\n\n### Core Components\n\n**1. Search Engine Optimization (SEO)**\n\nOptimize your website to rank higher in search results:\n- **On-page SEO**: Content, keywords, meta tags\n- **Off-page SEO**: Backlinks, social signals\n- **Technical SEO**: Site speed, mobile-friendliness\n\n**2. Content Marketing**\n\nCreate valuable content to attract and engage audiences:\n- Blog posts and articles\n- Videos and podcasts\n- Infographics and ebooks\n- Case studies and whitepapers\n\n**3. Social Media Marketing**\n\nBuild communities and engage with customers:\n- **Facebook**: Broad demographic reach\n- **Instagram**: Visual storytelling\n- **LinkedIn**: B2B networking\n- **Twitter**: Real-time engagement\n- **TikTok**: Short-form video content\n\n**4. Email Marketing**\n\nNurture relationships through targeted emails:\n- Welcome sequences\n- Newsletter campaigns\n- Promotional offers\n- Abandoned cart reminders\n\n**5. Pay-Per-Click (PPC) Advertising**\n\nDrive immediate traffic through paid ads:\n- Google Ads\n- Facebook Ads\n- LinkedIn Ads\n- Display advertising\n\n## The Marketing Funnel\n\nUnderstand how customers move through stages:\n\n### Awareness\nPotential customers discover your brand:\n- Content marketing\n- Social media presence\n- SEO\n- Display advertising\n\n### Consideration\nProspects evaluate your offerings:\n- Detailed product information\n- Case studies and testimonials\n- Comparison guides\n- Email nurture campaigns\n\n### Conversion\nTurn prospects into customers:\n- Clear calls-to-action\n- Optimized landing pages\n- Trust signals (reviews, guarantees)\n- Easy checkout process\n\n### Retention\nKeep customers coming back:\n- Excellent customer service\n- Loyalty programs\n- Exclusive content\n- Regular communication\n\n### Advocacy\nTurn customers into promoters:\n- Referral programs\n- User-generated content\n- Social proof\n- Community building\n\n## Measuring Success\n\n**Key Metrics to Track**:\n\n1. **Traffic**: Website visitors and sources\n2. **Engagement**: Time on site, pages per session\n3. **Conversion Rate**: Percentage of visitors who take action\n4. **Customer Acquisition Cost (CAC)**: Cost to acquire a customer\n5. **Return on Investment (ROI)**: Revenue generated vs. cost\n6. **Customer Lifetime Value (CLV)**: Total value of a customer\n\n## Digital Marketing Trends\n\n- **Personalization**: Tailored content and experiences\n- **Video Content**: Dominant format across platforms\n- **Voice Search**: Optimizing for voice assistants\n- **AI and Automation**: Smarter targeting and efficiency\n- **Privacy and Trust**: Transparent data practices\n\n## Building a Strategy\n\n1. **Define Goals**: What do you want to achieve?\n2. **Know Your Audience**: Create detailed buyer personas\n3. **Choose Channels**: Focus on where your audience is\n4. **Create Content**: Valuable, relevant, consistent\n5. **Analyze and Optimize**: Use data to improve\n\nDigital marketing success requires strategy, creativity, and continuous optimization. Start with fundamentals and adapt as you learn what works for your audience.`
+            }
+        ];
+
+        // State management
+        let currentCourse = null;
+        let currentBook = null;
+        let currentSection = 'courses';
+        let currentAIMode = null;
+        let bookFontSize = 16;
+
+        // Navigation
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('text-gray-600', 'dark:text-gray-300');
+            });
+
+            currentSection = section;
+
+            if (section === 'courses') {
+                document.getElementById('coursesSection').classList.remove('hidden');
+                document.getElementById('navCourses').classList.add('bg-primary', 'text-white');
+                document.getElementById('navCourses').classList.remove('text-gray-600', 'dark:text-gray-300');
+            } else if (section === 'books') {
+                document.getElementById('booksSection').classList.remove('hidden');
+                document.getElementById('navBooks').classList.add('bg-primary', 'text-white');
+                document.getElementById('navBooks').classList.remove('text-gray-600', 'dark:text-gray-300');
+            } else if (section === 'ai') {
+                document.getElementById('aiSection').classList.remove('hidden');
+                document.getElementById('navAI').classList.add('bg-primary', 'text-white');
+                document.getElementById('navAI').classList.remove('text-gray-600', 'dark:text-gray-300');
+            }
+        }
+
+        document.getElementById('navCourses').addEventListener('click', () => showSection('courses'));
+        document.getElementById('navBooks').addEventListener('click', () => showSection('books'));
+        document.getElementById('navAI').addEventListener('click', () => showSection('ai'));
+
+        // Render courses
+        function renderCourses() {
+            const grid = document.getElementById('courseGrid');
+            grid.innerHTML = courses.map(course => `
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer fade-in" onclick="showCourseDetail(${course.id})">
+                    <img src="${course.thumbnail}" alt="${course.title}" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">${course.title}</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">${course.description}</p>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-star text-yellow-400"></i>
+                                <span class="font-semibold">${course.rating}</span>
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-user-graduate mr-1"></i>${course.students.toLocaleString()}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                            <span><i class="fas fa-chalkboard-teacher mr-1"></i>${course.instructor}</span>
+                            <span><i class="fas fa-clock mr-1"></i>${course.duration}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Show course detail
+        function showCourseDetail(courseId) {
+            currentCourse = courses.find(c => c.id === courseId);
+            document.getElementById('coursesSection').classList.add('hidden');
+            document.getElementById('courseDetailSection').classList.remove('hidden');
+
+            const completedLessons = currentCourse.lessons.filter(l => l.completed).length;
+            const progress = (completedLessons / currentCourse.lessons.length) * 100;
+
+            document.getElementById('courseDetail').innerHTML = `
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+                    <img src="${currentCourse.thumbnail}" alt="${currentCourse.title}" class="w-full h-64 object-cover">
+                    <div class="p-8">
+                        <h1 class="text-3xl font-bold mb-4">${currentCourse.title}</h1>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">${currentCourse.description}</p>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <i class="fas fa-chalkboard-teacher text-primary text-2xl mb-2"></i>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Instructor</div>
+                                <div class="font-semibold">${currentCourse.instructor}</div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <i class="fas fa-clock text-primary text-2xl mb-2"></i>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Duration</div>
+                                <div class="font-semibold">${currentCourse.duration}</div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <i class="fas fa-star text-primary text-2xl mb-2"></i>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Rating</div>
+                                <div class="font-semibold">${currentCourse.rating} / 5.0</div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <i class="fas fa-user-graduate text-primary text-2xl mb-2"></i>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Students</div>
+                                <div class="font-semibold">${currentCourse.students.toLocaleString()}</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="font-semibold">Your Progress</span>
+                                <span class="text-gray-600 dark:text-gray-400">${completedLessons}/${currentCourse.lessons.length} lessons</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                <div class="progress-bar bg-primary rounded-full h-3" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+
+                        <h2 class="text-2xl font-bold mb-4">Course Content</h2>
+                        <div class="space-y-3">
+                            ${currentCourse.lessons.map((lesson, index) => `
+                                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-10 h-10 rounded-full ${lesson.completed ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'} flex items-center justify-center text-white font-semibold">
+                                            ${lesson.completed ? '<i class="fas fa-check"></i>' : index + 1}
+                                        </div>
+                                        <div>
+                                            <div class="font-semibold">${lesson.title}</div>
+                                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                                <i class="fas fa-clock mr-1"></i>${lesson.duration}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onclick="toggleLessonComplete(${lesson.id})" class="px-4 py-2 ${lesson.completed ? 'bg-gray-300 dark:bg-gray-600' : 'bg-primary'} text-white rounded-lg hover:opacity-80 transition-opacity">
+                                        ${lesson.completed ? 'Completed' : 'Start'}
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="mt-6">
+                            <button onclick="askCourseQuestion()" class="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary-dark transition-colors">
+                                <i class="fas fa-robot mr-2"></i>Ask AI Tutor About This Course
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleLessonComplete(lessonId) {
+            const lesson = currentCourse.lessons.find(l => l.id === lessonId);
+            lesson.completed = !lesson.completed;
+            showCourseDetail(currentCourse.id);
+        }
+
+        document.getElementById('backToCourses').addEventListener('click', () => {
+            document.getElementById('courseDetailSection').classList.add('hidden');
+            document.getElementById('coursesSection').classList.remove('hidden');
+        });
+
+        // Render books
+        function renderBooks() {
+            const grid = document.getElementById('booksGrid');
+            grid.innerHTML = books.map(book => `
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer fade-in" onclick="openBook(${book.id})">
+                    <img src="${book.cover}" alt="${book.title}" class="w-full h-80 object-cover">
+                    <div class="p-4">
+                        <div class="text-xs text-primary font-semibold mb-1">${book.category}</div>
+                        <h3 class="font-bold mb-1 line-clamp-2">${book.title}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">${book.author}</p>
+                        <div class="text-xs text-gray-500 dark:text-gray-500">
+                            <i class="fas fa-file-alt mr-1"></i>${book.pages} pages
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Book reader
+        function openBook(bookId) {
+            currentBook = books.find(b => b.id === bookId);
+            document.getElementById('booksSection').classList.add('hidden');
+            document.getElementById('bookReaderSection').classList.remove('hidden');
+            renderBookContent();
+        }
+
+        function renderBookContent() {
+            const reader = document.getElementById('bookReader');
+            reader.innerHTML = `
+                <div class="mb-6">
+                    <div class="text-sm text-primary font-semibold mb-2">${currentBook.category}</div>
+                    <h1 class="text-3xl sm:text-4xl font-bold mb-2">${currentBook.title}</h1>
+                    <p class="text-gray-600 dark:text-gray-400">by ${currentBook.author}</p>
+                </div>
+                <div class="book-content prose dark:prose-invert max-w-none" style="font-size: ${bookFontSize}px;">
+                    ${marked.parse(currentBook.content)}
+                </div>
+            `;
+        }
+
+        document.getElementById('backToBooks').addEventListener('click', () => {
+            document.getElementById('bookReaderSection').classList.add('hidden');
+            document.getElementById('booksSection').classList.remove('hidden');
+            currentBook = null;
+        });
+
+        document.getElementById('increaseFontSize').addEventListener('click', () => {
+            bookFontSize = Math.min(bookFontSize + 2, 24);
+            renderBookContent();
+        });
+
+        document.getElementById('decreaseFontSize').addEventListener('click', () => {
+            bookFontSize = Math.max(bookFontSize - 2, 12);
+            renderBookContent();
+        });
+
+        document.getElementById('askAboutBook').addEventListener('click', () => {
+            askBookQuestion();
+        });
+
+        // AI Chat Functions
+        let aiMessageHandlers = {};
+
+        function showAIChat(mode) {
+            currentAIMode = mode;
+            document.getElementById('aiChatContainer').classList.remove('hidden');
+            document.getElementById('aiChatMessages').innerHTML = '';
+
+            const titles = {
+                'homework': 'Homework Help',
+                'concept': 'Concept Explanation',
+                'quiz': 'Quiz Generator'
+            };
+            document.getElementById('aiChatTitle').textContent = titles[mode] || 'AI Tutor Chat';
+
+            const welcomeMessages = {
+                'homework': 'Hi! I\'m here to help with your homework. Share your problem and I\'ll guide you through it step by step.',
+                'concept': 'Hello! I can explain any concept you\'re struggling with. What would you like to understand better?',
+                'quiz': 'Ready to test your knowledge? Tell me what topic you want to practice, and I\'ll create a custom quiz for you!'
+            };
+
+            addAIMessage(welcomeMessages[mode], 'assistant');
+        }
+
+        function closeAIChat() {
+            document.getElementById('aiChatContainer').classList.add('hidden');
+            currentAIMode = null;
+        }
+
+        function addAIMessage(content, role) {
+            const messagesDiv = document.getElementById('aiChatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-4 ${role === 'user' ? 'text-right' : 'text-left'} fade-in`;
+
+            messageDiv.innerHTML = `
+                <div class="inline-block max-w-[80%] p-3 rounded-lg ${
+                    role === 'user'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                }">
+                    <div class="prose dark:prose-invert max-w-none ${role === 'user' ? 'prose-invert' : ''}">
+                        ${marked.parse(content)}
+                    </div>
+                </div>
+            `;
+
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showCustomModal(title, message, onConfirm, showCancel = true) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+                    <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">${title}</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">${message}</p>
+                    <div class="flex justify-end space-x-3">
+                        ${showCancel ? '<button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">Cancel</button>' : ''}
+                        <button class="confirm-btn px-4 py-2 bg-primary text-white hover:bg-primary-dark rounded transition-colors">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('.confirm-btn').addEventListener('click', () => {
+                modal.remove();
+                if (onConfirm) onConfirm();
+            });
+
+            if (showCancel) {
+                modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                    modal.remove();
+                });
+            }
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiChatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            addAIMessage(message, 'user');
+            input.value = '';
+
+            // Show loading message
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'mb-4 text-left fade-in loading-message';
+            loadingDiv.innerHTML = `
+                <div class="inline-block p-3 rounded-lg bg-gray-200 dark:bg-gray-700">
+                    <i class="fas fa-circle-notch fa-spin mr-2"></i>Thinking...
+                </div>
+            `;
+            document.getElementById('aiChatMessages').appendChild(loadingDiv);
+
+            // Prepare context-aware prompt
+            let contextPrompt = message;
+            if (currentAIMode === 'homework') {
+                contextPrompt = `As a patient tutor, help the student with this homework problem. Provide step-by-step guidance without giving away the complete answer immediately: ${message}`;
+            } else if (currentAIMode === 'concept') {
+                contextPrompt = `Explain this concept in a clear, easy-to-understand way with examples: ${message}`;
+            } else if (currentAIMode === 'quiz') {
+                contextPrompt = `Create a quiz with 5 multiple-choice questions about: ${message}. Format each question clearly with options A, B, C, D and indicate the correct answer at the end.`;
+            }
+
+            const handlerId = 'ai-chat-' + Date.now();
+
+            window.Poe.registerHandler(handlerId, (result) => {
+                const msg = result.responses[0];
+
+                if (msg.status === 'error') {
+                    const loadingMsg = document.querySelector('.loading-message');
+                    if (loadingMsg) loadingMsg.remove();
+                    addAIMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+                } else if (msg.status === 'incomplete') {
+                    const loadingMsg = document.querySelector('.loading-message');
+                    if (loadingMsg) {
+                        loadingMsg.remove();
+                        addAIMessage(msg.content, 'assistant');
+                    } else {
+                        // Update the last assistant message
+                        const messagesDiv = document.getElementById('aiChatMessages');
+                        const lastMsg = messagesDiv.lastElementChild;
+                        if (lastMsg && !lastMsg.classList.contains('loading-message')) {
+                            lastMsg.querySelector('.prose').innerHTML = marked.parse(msg.content);
+                        }
+                    }
+                } else if (msg.status === 'complete') {
+                    const loadingMsg = document.querySelector('.loading-message');
+                    if (loadingMsg) {
+                        loadingMsg.remove();
+                        addAIMessage(msg.content, 'assistant');
+                    } else {
+                        // Update the last assistant message
+                        const messagesDiv = document.getElementById('aiChatMessages');
+                        const lastMsg = messagesDiv.lastElementChild;
+                        if (lastMsg) {
+                            lastMsg.querySelector('.prose').innerHTML = marked.parse(msg.content);
+                        }
+                    }
+                }
+            });
+
+            window.Poe.sendUserMessage(`@Claude-Sonnet-4.5 ${contextPrompt}`, {
+                handler: handlerId,
+                stream: true,
+                openChat: false
+            }).catch(err => {
+                const loadingMsg = document.querySelector('.loading-message');
+                if (loadingMsg) loadingMsg.remove();
+                addAIMessage('Sorry, I couldn\'t send your message. Please try again.', 'assistant');
+                console.error('Error sending message:', err);
+            });
+        }
+
+        document.getElementById('aiChatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendAIMessage();
+        });
+
+        function askCourseQuestion() {
+            showSection('ai');
+            showAIChat('concept');
+            setTimeout(() => {
+                document.getElementById('aiChatInput').value = `I'm taking the course "${currentCourse.title}". Can you help me understand the key concepts?`;
+                sendAIMessage();
+            }, 100);
+        }
+
+        function askBookQuestion() {
+            showSection('ai');
+            showAIChat('concept');
+            setTimeout(() => {
+                document.getElementById('aiChatInput').value = `I'm reading "${currentBook.title}" by ${currentBook.author}. Can you provide a summary and key takeaways?`;
+                sendAIMessage();
+            }, 100);
+        }
+
+        // Initialize
+        renderCourses();
+        renderBooks();
+        showSection('courses');
+    </script>
+</body>
+</html>

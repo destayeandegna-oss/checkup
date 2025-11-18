@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .image-preview {
+            max-height: 400px;
+            object-fit: contain;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-[#181818] min-h-screen transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+                <i class="fas fa-face-smile text-3xl text-primary"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Face Recognition</h1>
+            <p class="text-gray-600 dark:text-gray-400">Upload an image to detect and analyze faces using AI</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 mb-6 shadow-sm">
+            <div class="mb-6">
+                <label for="imageUpload" class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Choose an image
+                </label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input
+                        type="file"
+                        id="imageUpload"
+                        accept="image/*"
+                        class="flex-1 text-base px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-800 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-base file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors"
+                    >
+                    <button
+                        id="analyzeBtn"
+                        class="px-6 py-3 bg-primary text-white text-base font-semibold rounded-lg hover:bg-primary/90 focus:ring-4 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        disabled
+                    >
+                        <i class="fas fa-search mr-2"></i>Analyze Faces
+                    </button>
+                </div>
+            </div>
+
+            <!-- Image Preview -->
+            <div id="previewContainer" class="hidden">
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Preview:</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 flex justify-center">
+                        <img id="imagePreview" class="image-preview rounded-lg shadow-sm" alt="Preview">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 mb-6 shadow-sm">
+            <div class="flex items-center justify-center space-x-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p class="text-gray-700 dark:text-gray-300 text-lg">Analyzing faces...</p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsContainer" class="hidden bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 shadow-sm slide-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    <i class="fas fa-chart-simple text-primary mr-2"></i>Analysis Results
+                </h2>
+                <button id="clearBtn" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="resultsContent" class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"></div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorContainer" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-red-900 dark:text-red-200 mb-2">Error</h3>
+                    <p id="errorMessage" class="text-red-700 dark:text-red-300"></p>
+                </div>
+                <button id="closeError" class="text-red-500 hover:text-red-700 dark:hover:text-red-400">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                <div class="flex-1">
+                    <h3 class="text-base font-semibold text-blue-900 dark:text-blue-200 mb-2">How it works</h3>
+                    <ul class="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+                        <li>• Upload an image containing one or more faces</li>
+                        <li>• AI will detect faces and provide detailed analysis</li>
+                        <li>• Get information about facial features, expressions, and demographics</li>
+                        <li>• Supports most common image formats (JPG, PNG, WebP, etc.)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // DOM elements
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewContainer = document.getElementById('previewContainer');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingState = document.getElementById('loadingState');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsContent = document.getElementById('resultsContent');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const clearBtn = document.getElementById('clearBtn');
+        const closeError = document.getElementById('closeError');
+
+        let selectedFile = null;
+
+        // Handle file selection
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                    analyzeBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+                hideError();
+                hideResults();
+            }
+        });
+
+        // Register Poe handler for face recognition
+        window.Poe.registerHandler('face-recognition-handler', (result) => {
+            const msg = result.responses[0];
+
+            if (msg.status === 'error') {
+                showError(msg.statusText || 'An error occurred while analyzing the image');
+                hideLoading();
+            } else if (msg.status === 'incomplete') {
+                // Update with streaming content
+                resultsContent.innerHTML = formatMarkdown(msg.content);
+                showResults();
+            } else if (msg.status === 'complete') {
+                // Final content
+                resultsContent.innerHTML = formatMarkdown(msg.content);
+                hideLoading();
+            }
+        });
+
+        // Analyze button click
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedFile) {
+                showError('Please select an image first');
+                return;
+            }
+
+            hideError();
+            hideResults();
+            showLoading();
+
+            try {
+                await window.Poe.sendUserMessage(
+                    '@Claude-Sonnet-4.5 Analyze this image and detect all faces. For each face detected, provide detailed information including: 1) Position/location in the image, 2) Estimated age range, 3) Gender, 4) Facial expression/emotion, 5) Notable facial features, 6) Any accessories (glasses, hats, etc.). Format your response in a clear, structured way with sections for each detected face. If no faces are detected, explain what you see in the image instead.',
+                    {
+                        attachments: [selectedFile],
+                        handler: 'face-recognition-handler',
+                        stream: true,
+                        openChat: false
+                    }
+                );
+            } catch (err) {
+                hideLoading();
+                if (err.errorType === 'USER_REJECTED_CONFIRMATION') {
+                    showError('You need to accept the confirmation to use this feature');
+                } else {
+                    showError('Failed to analyze image: ' + err.message);
+                }
+            }
+        });
+
+        // Clear results
+        clearBtn.addEventListener('click', () => {
+            hideResults();
+        });
+
+        // Close error
+        closeError.addEventListener('click', () => {
+            hideError();
+        });
+
+        // Helper functions
+        function showLoading() {
+            loadingState.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingState.classList.add('hidden');
+        }
+
+        function showResults() {
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function hideResults() {
+            resultsContainer.classList.add('hidden');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorContainer.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorContainer.classList.add('hidden');
+        }
+
+        function formatMarkdown(text) {
+            // Simple markdown formatting
+            let html = text
+                // Headers
+                .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mt-6 mb-3 text-gray-900 dark:text-white">$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-6 mb-4 text-gray-900 dark:text-white">$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-white">$1</h1>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
+                // Italic
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // Lists
+                .replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>')
+                .replace(/^\* (.*$)/gim, '<li class="ml-4">$1</li>')
+                .replace(/^\d+\. (.*$)/gim, '<li class="ml-4">$1</li>')
+                // Line breaks
+                .replace(/\n\n/g, '</p><p class="mb-4">')
+                .replace(/\n/g, '<br>');
+
+            // Wrap in paragraphs
+            html = '<p class="mb-4">' + html + '</p>';
+
+            // Wrap lists
+            html = html.replace(/(<li.*<\/li>)/s, '<ul class="list-disc mb-4">$1</ul>');
+
+            return html;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Information System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-gray-900 shadow-md border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-graduation-cap text-primary text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">Student Information System</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="exportDataBtn" class="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors" title="Export Data">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button id="importDataBtn" class="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors" title="Import Data">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Tabs -->
+        <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+            <nav class="flex space-x-4 overflow-x-auto" aria-label="Tabs">
+                <button data-tab="dashboard" class="tab-btn whitespace-nowrap py-3 px-4 border-b-2 font-medium text-base transition-colors">
+                    <i class="fas fa-chart-line mr-2"></i>Dashboard
+                </button>
+                <button data-tab="students" class="tab-btn whitespace-nowrap py-3 px-4 border-b-2 font-medium text-base transition-colors">
+                    <i class="fas fa-users mr-2"></i>Students
+                </button>
+                <button data-tab="courses" class="tab-btn whitespace-nowrap py-3 px-4 border-b-2 font-medium text-base transition-colors">
+                    <i class="fas fa-book mr-2"></i>Courses
+                </button>
+                <button data-tab="grades" class="tab-btn whitespace-nowrap py-3 px-4 border-b-2 font-medium text-base transition-colors">
+                    <i class="fas fa-star mr-2"></i>Grades
+                </button>
+            </nav>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">Total Students</p>
+                            <p id="totalStudents" class="text-3xl font-bold mt-2">0</p>
+                        </div>
+                        <i class="fas fa-users text-4xl text-blue-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">Total Courses</p>
+                            <p id="totalCourses" class="text-3xl font-bold mt-2">0</p>
+                        </div>
+                        <i class="fas fa-book text-4xl text-green-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium">Average GPA</p>
+                            <p id="avgGPA" class="text-3xl font-bold mt-2">0.0</p>
+                        </div>
+                        <i class="fas fa-chart-line text-4xl text-purple-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-orange-100 text-sm font-medium">Total Enrollments</p>
+                            <p id="totalEnrollments" class="text-3xl font-bold mt-2">0</p>
+                        </div>
+                        <i class="fas fa-clipboard-list text-4xl text-orange-200"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-trophy text-yellow-500 mr-2"></i>Top Performing Students
+                    </h3>
+                    <div id="topStudents" class="space-y-3">
+                        <p class="text-gray-500 dark:text-gray-400 text-center py-8">No student data available</p>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-800">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-bar text-primary mr-2"></i>Course Enrollment
+                    </h3>
+                    <div id="courseEnrollment" class="space-y-3">
+                        <p class="text-gray-500 dark:text-gray-400 text-center py-8">No course data available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Tab -->
+        <div id="students" class="tab-content hidden">
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex-1 w-full sm:max-w-md">
+                    <input type="text" id="studentSearch" placeholder="Search students..."
+                        class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                </div>
+                <button id="addStudentBtn" class="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-md">
+                    <i class="fas fa-plus mr-2"></i>Add Student
+                </button>
+            </div>
+            <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Major</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">GPA</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No students found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses Tab -->
+        <div id="courses" class="tab-content hidden">
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex-1 w-full sm:max-w-md">
+                    <input type="text" id="courseSearch" placeholder="Search courses..."
+                        class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                </div>
+                <button id="addCourseBtn" class="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-md">
+                    <i class="fas fa-plus mr-2"></i>Add Course
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="coursesGrid">
+                <div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
+                    No courses available
+                </div>
+            </div>
+        </div>
+
+        <!-- Grades Tab -->
+        <div id="grades" class="tab-content hidden">
+            <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <select id="gradeStudentFilter" class="px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <option value="">All Students</option>
+                </select>
+                <select id="gradeCourseFilter" class="px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <option value="">All Courses</option>
+                </select>
+            </div>
+            <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Grade</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Letter</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gradesTableBody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No grades found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="mt-6 text-right">
+                <button id="addGradeBtn" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-md">
+                    <i class="fas fa-plus mr-2"></i>Add Grade
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Modal -->
+    <div id="studentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="studentModalTitle" class="text-xl font-bold">Add Student</h2>
+                    <button class="closeModal text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="studentForm" class="space-y-4">
+                    <input type="hidden" id="studentId">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Student ID</label>
+                        <input type="text" id="studentIdInput" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Full Name</label>
+                        <input type="text" id="studentName" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="studentEmail" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Major</label>
+                        <input type="text" id="studentMajor" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Date of Birth</label>
+                        <input type="date" id="studentDOB" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Save
+                        </button>
+                        <button type="button" class="closeModal flex-1 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div id="courseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="courseModalTitle" class="text-xl font-bold">Add Course</h2>
+                    <button class="closeModal text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="courseForm" class="space-y-4">
+                    <input type="hidden" id="courseId">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Course Code</label>
+                        <input type="text" id="courseCode" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Course Name</label>
+                        <input type="text" id="courseName" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Instructor</label>
+                        <input type="text" id="courseInstructor" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Credits</label>
+                        <input type="number" id="courseCredits" required min="1" max="6" class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Semester</label>
+                        <select id="courseSemester" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                            <option value="">Select Semester</option>
+                            <option value="Fall 2024">Fall 2024</option>
+                            <option value="Spring 2025">Spring 2025</option>
+                            <option value="Summer 2025">Summer 2025</option>
+                            <option value="Fall 2025">Fall 2025</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Save
+                        </button>
+                        <button type="button" class="closeModal flex-1 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade Modal -->
+    <div id="gradeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto fade-in">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="gradeModalTitle" class="text-xl font-bold">Add Grade</h2>
+                    <button class="closeModal text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="gradeForm" class="space-y-4">
+                    <input type="hidden" id="gradeId">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Student</label>
+                        <select id="gradeStudent" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Course</label>
+                        <select id="gradeCourse" required class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                            <option value="">Select Course</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Grade (0-100)</label>
+                        <input type="number" id="gradeValue" required min="0" max="100" step="0.1" class="w-full px-4 py-2 text-base border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Save
+                        </button>
+                        <button type="button" class="closeModal flex-1 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-sm w-full fade-in">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-2xl mr-3"></i>
+                    <h2 class="text-xl font-bold">Confirm Action</h2>
+                </div>
+                <p id="confirmMessage" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+                <div class="flex gap-3">
+                    <button id="confirmYes" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        Delete
+                    </button>
+                    <button id="confirmNo" class="flex-1 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode initialization
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Data storage
+        class DataStore {
+            constructor() {
+                this.students = [];
+                this.courses = [];
+                this.grades = [];
+                this.loadSampleData();
+            }
+
+            loadSampleData() {
+                this.students = [
+                    { id: '1', studentId: 'S001', name: 'Alice Johnson', email: 'alice.j@university.edu', major: 'Computer Science', dob: '2002-03-15' },
+                    { id: '2', studentId: 'S002', name: 'Bob Smith', email: 'bob.s@university.edu', major: 'Engineering', dob: '2001-07-22' },
+                    { id: '3', studentId: 'S003', name: 'Carol Williams', email: 'carol.w@university.edu', major: 'Mathematics', dob: '2002-11-08' },
+                ];
+                this.courses = [
+                    { id: '1', code: 'CS101', name: 'Introduction to Programming', instructor: 'Dr. Anderson', credits: 3, semester: 'Fall 2024' },
+                    { id: '2', code: 'MATH201', name: 'Calculus II', instructor: 'Dr. Martinez', credits: 4, semester: 'Fall 2024' },
+                    { id: '3', code: 'ENG301', name: 'Software Engineering', instructor: 'Dr. Lee', credits: 3, semester: 'Fall 2024' },
+                ];
+                this.grades = [
+                    { id: '1', studentId: '1', courseId: '1', grade: 92.5 },
+                    { id: '2', studentId: '1', courseId: '2', grade: 88.0 },
+                    { id: '3', studentId: '2', courseId: '1', grade: 85.5 },
+                    { id: '4', studentId: '2', courseId: '3', grade: 90.0 },
+                    { id: '5', studentId: '3', courseId: '2', grade: 95.0 },
+                ];
+            }
+
+            save() {
+                // In-memory storage - no persistence needed
+            }
+
+            addStudent(student) {
+                student.id = Date.now().toString();
+                this.students.push(student);
+                this.save();
+                return student;
+            }
+
+            updateStudent(id, student) {
+                const index = this.students.findIndex(s => s.id === id);
+                if (index !== -1) {
+                    this.students[index] = { ...this.students[index], ...student };
+                    this.save();
+                }
+            }
+
+            deleteStudent(id) {
+                this.students = this.students.filter(s => s.id !== id);
+                this.grades = this.grades.filter(g => g.studentId !== id);
+                this.save();
+            }
+
+            addCourse(course) {
+                course.id = Date.now().toString();
+                this.courses.push(course);
+                this.save();
+                return course;
+            }
+
+            updateCourse(id, course) {
+                const index = this.courses.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    this.courses[index] = { ...this.courses[index], ...course };
+                    this.save();
+                }
+            }
+
+            deleteCourse(id) {
+                this.courses = this.courses.filter(c => c.id !== id);
+                this.grades = this.grades.filter(g => g.courseId !== id);
+                this.save();
+            }
+
+            addGrade(grade) {
+                grade.id = Date.now().toString();
+                this.grades.push(grade);
+                this.save();
+                return grade;
+            }
+
+            updateGrade(id, grade) {
+                const index = this.grades.findIndex(g => g.id === id);
+                if (index !== -1) {
+                    this.grades[index] = { ...this.grades[index], ...grade };
+                    this.save();
+                }
+            }
+
+            deleteGrade(id) {
+                this.grades = this.grades.filter(g => g.id !== id);
+                this.save();
+            }
+
+            getStudentGPA(studentId) {
+                const studentGrades = this.grades.filter(g => g.studentId === studentId);
+                if (studentGrades.length === 0) return 0;
+                const avg = studentGrades.reduce((sum, g) => sum + parseFloat(g.grade), 0) / studentGrades.length;
+                return this.gradeToGPA(avg);
+            }
+
+            gradeToGPA(grade) {
+                if (grade >= 93) return 4.0;
+                if (grade >= 90) return 3.7;
+                if (grade >= 87) return 3.3;
+                if (grade >= 83) return 3.0;
+                if (grade >= 80) return 2.7;
+                if (grade >= 77) return 2.3;
+                if (grade >= 73) return 2.0;
+                if (grade >= 70) return 1.7;
+                if (grade >= 67) return 1.3;
+                if (grade >= 65) return 1.0;
+                return 0.0;
+            }
+
+            gradeToLetter(grade) {
+                if (grade >= 93) return 'A';
+                if (grade >= 90) return 'A-';
+                if (grade >= 87) return 'B+';
+                if (grade >= 83) return 'B';
+                if (grade >= 80) return 'B-';
+                if (grade >= 77) return 'C+';
+                if (grade >= 73) return 'C';
+                if (grade >= 70) return 'C-';
+                if (grade >= 67) return 'D+';
+                if (grade >= 65) return 'D';
+                return 'F';
+            }
+
+            exportData() {
+                const data = {
+                    students: this.students,
+                    courses: this.courses,
+                    grades: this.grades,
+                    exportDate: new Date().toISOString()
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `sis_data_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            importData(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.students) this.students = data.students;
+                        if (data.courses) this.courses = data.courses;
+                        if (data.grades) this.grades = data.grades;
+                        this.save();
+                        app.render();
+                        showNotification('Data imported successfully!', 'success');
+                    } catch (error) {
+                        showNotification('Error importing data. Please check the file format.', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        const store = new DataStore();
+
+        // App controller
+        class App {
+            constructor() {
+                this.currentTab = 'dashboard';
+                this.initializeEventListeners();
+                this.switchTab('dashboard');
+            }
+
+            initializeEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.switchTab(btn.dataset.tab);
+                    });
+                });
+
+                // Modal controls
+                document.querySelectorAll('.closeModal').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.closeAllModals();
+                    });
+                });
+
+                // Student controls
+                document.getElementById('addStudentBtn').addEventListener('click', () => this.openStudentModal());
+                document.getElementById('studentForm').addEventListener('submit', (e) => this.saveStudent(e));
+                document.getElementById('studentSearch').addEventListener('input', (e) => this.renderStudents(e.target.value));
+
+                // Course controls
+                document.getElementById('addCourseBtn').addEventListener('click', () => this.openCourseModal());
+                document.getElementById('courseForm').addEventListener('submit', (e) => this.saveCourse(e));
+                document.getElementById('courseSearch').addEventListener('input', (e) => this.renderCourses(e.target.value));
+
+                // Grade controls
+                document.getElementById('addGradeBtn').addEventListener('click', () => this.openGradeModal());
+                document.getElementById('gradeForm').addEventListener('submit', (e) => this.saveGrade(e));
+                document.getElementById('gradeStudentFilter').addEventListener('change', () => this.renderGrades());
+                document.getElementById('gradeCourseFilter').addEventListener('change', () => this.renderGrades());
+
+                // Export/Import
+                document.getElementById('exportDataBtn').addEventListener('click', () => store.exportData());
+                document.getElementById('importDataBtn').addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    input.onchange = (e) => store.importData(e.target.files[0]);
+                    input.click();
+                });
+
+                // Confirm modal
+                document.getElementById('confirmNo').addEventListener('click', () => {
+                    document.getElementById('confirmModal').classList.add('hidden');
+                });
+            }
+
+            switchTab(tabName) {
+                this.currentTab = tabName;
+
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    if (btn.dataset.tab === tabName) {
+                        btn.classList.add('border-primary', 'text-primary');
+                        btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                    } else {
+                        btn.classList.remove('border-primary', 'text-primary');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                    }
+                });
+
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(tabName).classList.remove('hidden');
+
+                // Render content
+                this.render();
+            }
+
+            render() {
+                switch (this.currentTab) {
+                    case 'dashboard':
+                        this.renderDashboard();
+                        break;
+                    case 'students':
+                        this.renderStudents();
+                        break;
+                    case 'courses':
+                        this.renderCourses();
+                        break;
+                    case 'grades':
+                        this.renderGrades();
+                        this.populateGradeFilters();
+                        break;
+                }
+            }
+
+            renderDashboard() {
+                // Statistics
+                document.getElementById('totalStudents').textContent = store.students.length;
+                document.getElementById('totalCourses').textContent = store.courses.length;
+                document.getElementById('totalEnrollments').textContent = store.grades.length;
+
+                const avgGPA = store.students.length > 0
+                    ? store.students.reduce((sum, s) => sum + store.getStudentGPA(s.id), 0) / store.students.length
+                    : 0;
+                document.getElementById('avgGPA').textContent = avgGPA.toFixed(2);
+
+                // Top students
+                const topStudents = [...store.students]
+                    .map(s => ({ ...s, gpa: store.getStudentGPA(s.id) }))
+                    .sort((a, b) => b.gpa - a.gpa)
+                    .slice(0, 5);
+
+                const topStudentsHTML = topStudents.length > 0
+                    ? topStudents.map((s, i) => `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold text-sm mr-3">
+                                    ${i + 1}
+                                </span>
+                                <div>
+                                    <p class="font-medium">${s.name}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">${s.major}</p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-primary">${s.gpa.toFixed(2)}</span>
+                        </div>
+                    `).join('')
+                    : '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No student data available</p>';
+                document.getElementById('topStudents').innerHTML = topStudentsHTML;
+
+                // Course enrollment
+                const courseEnrollment = store.courses.map(c => ({
+                    ...c,
+                    enrollment: store.grades.filter(g => g.courseId === c.id).length
+                })).sort((a, b) => b.enrollment - a.enrollment).slice(0, 5);
+
+                const courseEnrollmentHTML = courseEnrollment.length > 0
+                    ? courseEnrollment.map(c => `
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium">${c.name}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">${c.enrollment} students</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: ${(c.enrollment / store.students.length) * 100}%"></div>
+                            </div>
+                        </div>
+                    `).join('')
+                    : '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No course data available</p>';
+                document.getElementById('courseEnrollment').innerHTML = courseEnrollmentHTML;
+            }
+
+            renderStudents(searchTerm = '') {
+                const filtered = store.students.filter(s =>
+                    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.major.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                const tbody = document.getElementById('studentsTableBody');
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No students found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(s => `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${s.studentId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${s.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${s.email}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${s.major}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${store.getStudentGPA(s.id).toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <button onclick="app.editStudent('${s.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="app.deleteStudent('${s.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            renderCourses(searchTerm = '') {
+                const filtered = store.courses.filter(c =>
+                    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    c.instructor.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                const grid = document.getElementById('coursesGrid');
+                if (filtered.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">No courses available</div>';
+                    return;
+                }
+
+                grid.innerHTML = filtered.map(c => {
+                    const enrollment = store.grades.filter(g => g.courseId === c.id).length;
+                    return `
+                        <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg transition-shadow fade-in">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-bold mb-1">${c.name}</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">${c.code}</p>
+                                </div>
+                                <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">${c.credits} Credits</span>
+                            </div>
+                            <div class="space-y-2 mb-4">
+                                <p class="text-sm flex items-center text-gray-700 dark:text-gray-300">
+                                    <i class="fas fa-chalkboard-teacher w-5 text-gray-400"></i>
+                                    ${c.instructor}
+                                </p>
+                                <p class="text-sm flex items-center text-gray-700 dark:text-gray-300">
+                                    <i class="fas fa-calendar w-5 text-gray-400"></i>
+                                    ${c.semester}
+                                </p>
+                                <p class="text-sm flex items-center text-gray-700 dark:text-gray-300">
+                                    <i class="fas fa-users w-5 text-gray-400"></i>
+                                    ${enrollment} students enrolled
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="app.editCourse('${c.id}')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </button>
+                                <button onclick="app.deleteCourse('${c.id}')" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderGrades() {
+                const studentFilter = document.getElementById('gradeStudentFilter').value;
+                const courseFilter = document.getElementById('gradeCourseFilter').value;
+
+                let filtered = store.grades;
+                if (studentFilter) filtered = filtered.filter(g => g.studentId === studentFilter);
+                if (courseFilter) filtered = filtered.filter(g => g.courseId === courseFilter);
+
+                const tbody = document.getElementById('gradesTableBody');
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No grades found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(g => {
+                    const student = store.students.find(s => s.id === g.studentId);
+                    const course = store.courses.find(c => c.id === g.courseId);
+                    const letter = store.gradeToLetter(g.grade);
+                    const letterColor = letter.startsWith('A') ? 'text-green-600 dark:text-green-400' :
+                                       letter.startsWith('B') ? 'text-blue-600 dark:text-blue-400' :
+                                       letter.startsWith('C') ? 'text-yellow-600 dark:text-yellow-400' :
+                                       'text-red-600 dark:text-red-400';
+
+                    return `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">${student ? student.name : 'Unknown'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">${course ? course.name : 'Unknown'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold">${parseFloat(g.grade).toFixed(1)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${letterColor}">${letter}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <button onclick="app.editGrade('${g.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="app.deleteGrade('${g.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            populateGradeFilters() {
+                const studentSelect = document.getElementById('gradeStudentFilter');
+                const courseSelect = document.getElementById('gradeCourseFilter');
+
+                studentSelect.innerHTML = '<option value="">All Students</option>' +
+                    store.students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+                courseSelect.innerHTML = '<option value="">All Courses</option>' +
+                    store.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+
+            openStudentModal(student = null) {
+                const modal = document.getElementById('studentModal');
+                const title = document.getElementById('studentModalTitle');
+                const form = document.getElementById('studentForm');
+
+                if (student) {
+                    title.textContent = 'Edit Student';
+                    document.getElementById('studentId').value = student.id;
+                    document.getElementById('studentIdInput').value = student.studentId;
+                    document.getElementById('studentName').value = student.name;
+                    document.getElementById('studentEmail').value = student.email;
+                    document.getElementById('studentMajor').value = student.major;
+                    document.getElementById('studentDOB').value = student.dob;
+                } else {
+                    title.textContent = 'Add Student';
+                    form.reset();
+                    document.getElementById('studentId').value = '';
+                }
+
+                modal.classList.remove('hidden');
+            }
+
+            saveStudent(e) {
+                e.preventDefault();
+                const id = document.getElementById('studentId').value;
+                const student = {
+                    studentId: document.getElementById('studentIdInput').value,
+                    name: document.getElementById('studentName').value,
+                    email: document.getElementById('studentEmail').value,
+                    major: document.getElementById('studentMajor').value,
+                    dob: document.getElementById('studentDOB').value,
+                };
+
+                if (id) {
+                    store.updateStudent(id, student);
+                    showNotification('Student updated successfully!', 'success');
+                } else {
+                    store.addStudent(student);
+                    showNotification('Student added successfully!', 'success');
+                }
+
+                this.closeAllModals();
+                this.render();
+            }
+
+            editStudent(id) {
+                const student = store.students.find(s => s.id === id);
+                if (student) this.openStudentModal(student);
+            }
+
+            deleteStudent(id) {
+                this.showConfirmation('Are you sure you want to delete this student? All associated grades will also be deleted.', () => {
+                    store.deleteStudent(id);
+                    this.render();
+                    showNotification('Student deleted successfully!', 'success');
+                });
+            }
+
+            openCourseModal(course = null) {
+                const modal = document.getElementById('courseModal');
+                const title = document.getElementById('courseModalTitle');
+                const form = document.getElementById('courseForm');
+
+                if (course) {
+                    title.textContent = 'Edit Course';
+                    document.getElementById('courseId').value = course.id;
+                    document.getElementById('courseCode').value = course.code;
+                    document.getElementById('courseName').value = course.name;
+                    document.getElementById('courseInstructor').value = course.instructor;
+                    document.getElementById('courseCredits').value = course.credits;
+                    document.getElementById('courseSemester').value = course.semester;
+                } else {
+                    title.textContent = 'Add Course';
+                    form.reset();
+                    document.getElementById('courseId').value = '';
+                }
+
+                modal.classList.remove('hidden');
+            }
+
+            saveCourse(e) {
+                e.preventDefault();
+                const id = document.getElementById('courseId').value;
+                const course = {
+                    code: document.getElementById('courseCode').value,
+                    name: document.getElementById('courseName').value,
+                    instructor: document.getElementById('courseInstructor').value,
+                    credits: parseInt(document.getElementById('courseCredits').value),
+                    semester: document.getElementById('courseSemester').value,
+                };
+
+                if (id) {
+                    store.updateCourse(id, course);
+                    showNotification('Course updated successfully!', 'success');
+                } else {
+                    store.addCourse(course);
+                    showNotification('Course added successfully!', 'success');
+                }
+
+                this.closeAllModals();
+                this.render();
+            }
+
+            editCourse(id) {
+                const course = store.courses.find(c => c.id === id);
+                if (course) this.openCourseModal(course);
+            }
+
+            deleteCourse(id) {
+                this.showConfirmation('Are you sure you want to delete this course? All associated grades will also be deleted.', () => {
+                    store.deleteCourse(id);
+                    this.render();
+                    showNotification('Course deleted successfully!', 'success');
+                });
+            }
+
+            openGradeModal(grade = null) {
+                const modal = document.getElementById('gradeModal');
+                const title = document.getElementById('gradeModalTitle');
+                const form = document.getElementById('gradeForm');
+
+                // Populate dropdowns
+                document.getElementById('gradeStudent').innerHTML = '<option value="">Select Student</option>' +
+                    store.students.map(s => `<option value="${s.id}">${s.name} (${s.studentId})</option>`).join('');
+                document.getElementById('gradeCourse').innerHTML = '<option value="">Select Course</option>' +
+                    store.courses.map(c => `<option value="${c.id}">${c.code} - ${c.name}</option>`).join('');
+
+                if (grade) {
+                    title.textContent = 'Edit Grade';
+                    document.getElementById('gradeId').value = grade.id;
+                    document.getElementById('gradeStudent').value = grade.studentId;
+                    document.getElementById('gradeCourse').value = grade.courseId;
+                    document.getElementById('gradeValue').value = grade.grade;
+                } else {
+                    title.textContent = 'Add Grade';
+                    form.reset();
+                    document.getElementById('gradeId').value = '';
+                }
+
+                modal.classList.remove('hidden');
+            }
+
+            saveGrade(e) {
+                e.preventDefault();
+                const id = document.getElementById('gradeId').value;
+                const grade = {
+                    studentId: document.getElementById('gradeStudent').value,
+                    courseId: document.getElementById('gradeCourse').value,
+                    grade: parseFloat(document.getElementById('gradeValue').value),
+                };
+
+                if (id) {
+                    store.updateGrade(id, grade);
+                    showNotification('Grade updated successfully!', 'success');
+                } else {
+                    store.addGrade(grade);
+                    showNotification('Grade added successfully!', 'success');
+                }
+
+                this.closeAllModals();
+                this.render();
+            }
+
+            editGrade(id) {
+                const grade = store.grades.find(g => g.id === id);
+                if (grade) this.openGradeModal(grade);
+            }
+
+            deleteGrade(id) {
+                this.showConfirmation('Are you sure you want to delete this grade?', () => {
+                    store.deleteGrade(id);
+                    this.render();
+                    showNotification('Grade deleted successfully!', 'success');
+                });
+            }
+
+            closeAllModals() {
+                document.getElementById('studentModal').classList.add('hidden');
+                document.getElementById('courseModal').classList.add('hidden');
+                document.getElementById('gradeModal').classList.add('hidden');
+                document.getElementById('confirmModal').classList.add('hidden');
+            }
+
+            showConfirmation(message, onConfirm) {
+                const modal = document.getElementById('confirmModal');
+                document.getElementById('confirmMessage').textContent = message;
+
+                const confirmBtn = document.getElementById('confirmYes');
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                newConfirmBtn.addEventListener('click', () => {
+                    onConfirm();
+                    modal.classList.add('hidden');
+                });
+
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 fade-in ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-10px)';
+                notification.style.transition = 'all 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize app
+        const app = new App();
+    </script>
+</body>
+</html>

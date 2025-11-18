@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4a49c8'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 min-h-screen transition-colors">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-center mb-2">📋 Attendance Tracker</h1>
+            <p class="text-center text-gray-600 dark:text-gray-400">Track and manage attendance records</p>
+        </header>
+
+        <!-- Add Member Section -->
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 fade-in">
+            <h2 class="text-xl font-semibold mb-4">Add Member</h2>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input
+                    type="text"
+                    id="memberName"
+                    placeholder="Enter member name"
+                    class="flex-1 px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition"
+                >
+                <button
+                    onclick="addMember()"
+                    class="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition transform hover:scale-105 active:scale-95"
+                >
+                    Add Member
+                </button>
+            </div>
+        </div>
+
+        <!-- Date Selection -->
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 fade-in">
+            <h2 class="text-xl font-semibold mb-4">Mark Attendance</h2>
+            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <label class="font-medium">Date:</label>
+                <input
+                    type="date"
+                    id="attendanceDate"
+                    class="px-4 py-3 text-base rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition"
+                >
+                <button
+                    onclick="markAllPresent()"
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm"
+                >
+                    Mark All Present
+                </button>
+                <button
+                    onclick="markAllAbsent()"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm"
+                >
+                    Mark All Absent
+                </button>
+            </div>
+        </div>
+
+        <!-- Members List -->
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Members</h2>
+                <span id="memberCount" class="text-sm text-gray-600 dark:text-gray-400">0 members</span>
+            </div>
+            <div id="membersList" class="space-y-2">
+                <p class="text-center text-gray-500 dark:text-gray-400 py-8">No members added yet</p>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6 fade-in">
+            <h2 class="text-xl font-semibold mb-4">Statistics</h2>
+            <div id="statistics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            </div>
+        </div>
+
+        <!-- Attendance History -->
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-md p-6 fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Attendance History</h2>
+                <button
+                    onclick="exportData()"
+                    class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition text-sm"
+                >
+                    Export CSV
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full" id="historyTable">
+                    <thead class="bg-gray-200 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold">Member</th>
+                            <th class="px-4 py-3 text-center font-semibold">Total Days</th>
+                            <th class="px-4 py-3 text-center font-semibold">Present</th>
+                            <th class="px-4 py-3 text-center font-semibold">Absent</th>
+                            <th class="px-4 py-3 text-center font-semibold">Attendance %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="5" class="text-center py-8 text-gray-500 dark:text-gray-400">No attendance records yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Modal -->
+    <div id="customModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 fade-in">
+            <p id="modalMessage" class="text-gray-700 dark:text-gray-300 mb-4"></p>
+            <div class="flex justify-end">
+                <button
+                    onclick="closeModal()"
+                    class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 fade-in">
+            <p id="confirmMessage" class="text-gray-700 dark:text-gray-300 mb-4"></p>
+            <div class="flex justify-end space-x-3">
+                <button
+                    onclick="closeConfirmModal(false)"
+                    class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                >
+                    Cancel
+                </button>
+                <button
+                    id="confirmButton"
+                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
+                >
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode support
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Data structure (in-memory storage)
+        let members = [];
+        let attendance = {};
+
+        // Set today's date as default
+        document.getElementById('attendanceDate').valueAsDate = new Date();
+
+        // Initialize
+        function init() {
+            renderMembers();
+            updateStatistics();
+            updateHistory();
+        }
+
+        // Modal functions
+        function showModal(message) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+
+        function showConfirmModal(message, onConfirm) {
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmModal').classList.remove('hidden');
+
+            const confirmBtn = document.getElementById('confirmButton');
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+            newConfirmBtn.onclick = () => {
+                closeConfirmModal(true);
+                onConfirm();
+            };
+        }
+
+        function closeConfirmModal(confirmed) {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        // Add member
+        function addMember() {
+            const nameInput = document.getElementById('memberName');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                showModal('Please enter a member name');
+                return;
+            }
+
+            if (members.includes(name)) {
+                showModal('This member already exists');
+                return;
+            }
+
+            members.push(name);
+            saveData();
+            nameInput.value = '';
+            renderMembers();
+            updateStatistics();
+            updateHistory();
+        }
+
+        // Remove member
+        function removeMember(name) {
+            showConfirmModal(`Are you sure you want to remove ${name}?`, () => {
+                members = members.filter(m => m !== name);
+
+                // Remove from attendance records
+                Object.keys(attendance).forEach(date => {
+                    delete attendance[date][name];
+                });
+
+                saveData();
+                renderMembers();
+                updateStatistics();
+                updateHistory();
+            });
+        }
+
+        // Toggle attendance
+        function toggleAttendance(name) {
+            const date = document.getElementById('attendanceDate').value;
+
+            if (!date) {
+                showModal('Please select a date');
+                return;
+            }
+
+            if (!attendance[date]) {
+                attendance[date] = {};
+            }
+
+            attendance[date][name] = !attendance[date][name];
+            saveData();
+            renderMembers();
+            updateStatistics();
+            updateHistory();
+        }
+
+        // Mark all present
+        function markAllPresent() {
+            const date = document.getElementById('attendanceDate').value;
+
+            if (!date) {
+                showModal('Please select a date');
+                return;
+            }
+
+            if (!attendance[date]) {
+                attendance[date] = {};
+            }
+
+            members.forEach(name => {
+                attendance[date][name] = true;
+            });
+
+            saveData();
+            renderMembers();
+            updateStatistics();
+            updateHistory();
+        }
+
+        // Mark all absent
+        function markAllAbsent() {
+            const date = document.getElementById('attendanceDate').value;
+
+            if (!date) {
+                showModal('Please select a date');
+                return;
+            }
+
+            if (!attendance[date]) {
+                attendance[date] = {};
+            }
+
+            members.forEach(name => {
+                attendance[date][name] = false;
+            });
+
+            saveData();
+            renderMembers();
+            updateStatistics();
+            updateHistory();
+        }
+
+        // Render members
+        function renderMembers() {
+            const membersList = document.getElementById('membersList');
+            const date = document.getElementById('attendanceDate').value;
+
+            if (members.length === 0) {
+                membersList.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No members added yet</p>';
+                document.getElementById('memberCount').textContent = '0 members';
+                return;
+            }
+
+            document.getElementById('memberCount').textContent = `${members.length} member${members.length !== 1 ? 's' : ''}`;
+
+            membersList.innerHTML = members.map(name => {
+                const isPresent = attendance[date] && attendance[date][name];
+                const hasRecord = attendance[date] && attendance[date].hasOwnProperty(name);
+
+                return `
+                    <div class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition">
+                        <span class="font-medium flex-1">${name}</span>
+                        <div class="flex items-center gap-3">
+                            <button
+                                onclick="toggleAttendance('${name}')"
+                                class="px-4 py-2 rounded-lg font-medium transition transform hover:scale-105 active:scale-95 ${
+                                    isPresent
+                                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                                    : hasRecord
+                                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                                    : 'bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                }"
+                            >
+                                ${isPresent ? '✓ Present' : hasRecord ? '✗ Absent' : 'Mark'}
+                            </button>
+                            <button
+                                onclick="removeMember('${name}')"
+                                class="px-3 py-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition"
+                                title="Remove member"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const stats = document.getElementById('statistics');
+            const totalMembers = members.length;
+            const totalDays = Object.keys(attendance).length;
+
+            let totalPresent = 0;
+            let totalAbsent = 0;
+
+            Object.values(attendance).forEach(dayRecord => {
+                Object.values(dayRecord).forEach(present => {
+                    if (present) totalPresent++;
+                    else totalAbsent++;
+                });
+            });
+
+            const attendanceRate = totalPresent + totalAbsent > 0
+                ? ((totalPresent / (totalPresent + totalAbsent)) * 100).toFixed(1)
+                : 0;
+
+            stats.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="text-2xl font-bold text-primary">${totalMembers}</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Total Members</div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="text-2xl font-bold text-primary">${totalDays}</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Days Tracked</div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="text-2xl font-bold text-green-600">${totalPresent}</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Total Present</div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="text-2xl font-bold text-primary">${attendanceRate}%</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Attendance Rate</div>
+                </div>
+            `;
+        }
+
+        // Update history
+        function updateHistory() {
+            const historyBody = document.getElementById('historyBody');
+
+            if (members.length === 0) {
+                historyBody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500 dark:text-gray-400">No attendance records yet</td></tr>';
+                return;
+            }
+
+            historyBody.innerHTML = members.map(name => {
+                let present = 0;
+                let absent = 0;
+
+                Object.values(attendance).forEach(dayRecord => {
+                    if (dayRecord.hasOwnProperty(name)) {
+                        if (dayRecord[name]) present++;
+                        else absent++;
+                    }
+                });
+
+                const total = present + absent;
+                const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+
+                return `
+                    <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        <td class="px-4 py-3 font-medium">${name}</td>
+                        <td class="px-4 py-3 text-center">${total}</td>
+                        <td class="px-4 py-3 text-center text-green-600 font-semibold">${present}</td>
+                        <td class="px-4 py-3 text-center text-red-600 font-semibold">${absent}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                                percentage >= 75 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                                percentage >= 50 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
+                                'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                            }">
+                                ${percentage}%
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Export data
+        function exportData() {
+            if (members.length === 0) {
+                showModal('No data to export');
+                return;
+            }
+
+            let csv = 'Member,Total Days,Present,Absent,Attendance %\n';
+
+            members.forEach(name => {
+                let present = 0;
+                let absent = 0;
+
+                Object.values(attendance).forEach(dayRecord => {
+                    if (dayRecord.hasOwnProperty(name)) {
+                        if (dayRecord[name]) present++;
+                        else absent++;
+                    }
+                });
+
+                const total = present + absent;
+                const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+
+                csv += `${name},${total},${present},${absent},${percentage}%\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Save data (in-memory, no persistence needed)
+        function saveData() {
+            // Data is stored in memory and will reset on page reload
+            // This is suitable for the iframe environment
+        }
+
+        // Allow Enter key to add member
+        document.getElementById('memberName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addMember();
+            }
+        });
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
