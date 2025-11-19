@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, UserCheck, Users, Clock, Calendar, CheckCircle, XCircle, AlertCircle, Fingerprint, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
